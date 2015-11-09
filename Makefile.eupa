@@ -1,0 +1,177 @@
+# -*- Makefile -*-
+# Eugene Skepner 2015
+
+# ----------------------------------------------------------------------
+# Variables to be set by user of this Makefile
+
+ifeq ($(EUPA_ROOT),)
+$(error EUPA_ROOT is not set)
+endif
+
+# js files installation dir
+EUPA_JS ?= $(EUPA_ROOT)/js
+
+# d.ts (typescript definitions) files installation dir
+EUPA_DTS ?= $(EUPA_ROOT)/typings
+
+# binaries and intermediate files installation dir
+EUPA_BUILD ?= $(EUPA_ROOT)/build
+
+# default theme for jquery_ui
+JQUERY_UI_THEME ?= smoothness
+
+# ----------------------------------------------------------------------
+
+CURL = curl -sL
+AWK = awk
+
+UNAME_S := $(shell uname -s)
+
+# ----------------------------------------------------------------------
+
+TSC = $(EUPA_ROOT)/bin/tsc
+LESSC = $(EUPA_ROOT)/bin/lessc
+
+# ----------------------------------------------------------------------
+
+eupa:
+	$(error $(usage))
+
+# ----------------------------------------------------------------------
+
+jquery: $(EUPA_JS)/jquery.js $(EUPA_DTS)/jquery.d.ts $(EUPA_JS)/jquery.mousewheel.js
+
+jquery-ui: $(EUPA_JS)/jquery-ui.js $(EUPA_DTS)/jqueryui.d.ts
+
+require requirejs: $(EUPA_JS)/require.js $(EUPA_DTS)/require.d.ts $(EUPA_JS)/css.js $(EUPA_JS)/json.js $(EUPA_JS)/text.js
+
+threejs: $(EUPA_JS)/three.js $(EUPA_DTS)/three.d.ts
+
+tsc typescript: $(TSC)
+
+lessc less: $(LESSC) $(EUPA_ROOT)/lib/node_modules/less-plugin-clean-css
+
+# ----------------------------------------------------------------------
+
+$(EUPA_JS)/jquery.js: | $(EUPA_JS)
+	@HOST="http://code.jquery.com" &&\
+	BASENAME=$$(curl -s "$$HOST" | awk -F 'href=' '/jquery-2.+min/ { split($$NF, a, substr($$NF, 1, 1)); print a[2];}') &&\
+	echo downloading $$HOST$$BASENAME &&\
+	$(CURL) -o $@ "$$HOST$$BASENAME"
+	@head -n 1 $@
+
+$(EUPA_JS)/jquery.mousewheel.js: | $(EUPA_JS)
+	$(CURL) -o $@ https://github.com/jquery/jquery-mousewheel/raw/master/jquery.mousewheel.min.js
+	@grep Mousewheel $@
+
+$(EUPA_JS)/jquery-ui.js: | $(EUPA_JS) $(EUPA_BUILD)
+	@JQUERY_UI_VERSION=$$($(CURL) http://jqueryui.com/download/ | awk -F '(download/jquery-ui-|\.zip)' '{s=tolower($$0)} s~/href.+stable/ {print $$2}') &&\
+	  echo Downloading jquery-ui $$JQUERY_UI_VERSION &&\
+	  $(CURL) -o $(EUPA_BUILD)/jquery-ui.zip http://jqueryui.com/resources/download/jquery-ui-$$JQUERY_UI_VERSION.zip &&\
+	  $(CURL) -o $(EUPA_BUILD)/jquery-ui-themes.zip http://jqueryui.com/resources/download/jquery-ui-themes-$$JQUERY_UI_VERSION.zip
+	@unzip -p $(EUPA_BUILD)/jquery-ui.zip \*jquery-ui.min.js >$@
+	@unzip -p $(EUPA_BUILD)/jquery-ui-themes.zip \*/themes/$(JQUERY_UI_THEME)/jquery-ui.min.css >$(dir $@)jquery-ui.css
+	@mkdir -p $(dir $@)/images
+	@unzip -q -o -j -d $(dir $@)/images $(EUPA_BUILD)/jquery-ui-themes.zip \*/themes/$(JQUERY_UI_THEME)/images/\*
+
+$(EUPA_JS)/require.js: | $(EUPA_JS)
+	$(CURL) -o $@ $$($(CURL) http://requirejs.org/docs/download.html | awk -F '(href="|")' '/href=.+\/minified/ { print $$(NF-1); }')
+
+$(EUPA_JS)/css.js: | $(EUPA_JS)
+	$(CURL) -o $@ https://raw.github.com/dimaxweb/CSSLoader/master/dist/css.js
+
+$(EUPA_JS)/json.js: | $(EUPA_JS)
+	$(call uglify,https://github.com/millermedeiros/requirejs-plugins/raw/master/src/json.js)
+
+$(EUPA_JS)/text.js: | $(EUPA_JS)
+	$(call uglify,https://github.com/millermedeiros/requirejs-plugins/raw/master/lib/text.js)
+
+$(EUPA_JS)/three.js: | $(EUPA_JS)
+	@LATEST=$$(curl -s -D - https://github.com/mrdoob/three.js/releases/latest | awk -F '[/\r]' '/^Location:/ {printf $$(NF-1);}') &&\
+	URL=https://cdnjs.cloudflare.com/ajax/libs/three.js/$$LATEST/three.min.js &&\
+	echo $$URL &&\
+	$(CURL) -o $@ $$URL
+
+# ----------------------------------------------------------------------
+
+$(EUPA_DTS)/%.d.ts: | $(EUPA_DTS)
+	$(CURL) -sL -o $@ https://github.com/DefinitelyTyped/DefinitelyTyped/raw/master/$*/$*.d.ts
+
+$(EUPA_DTS)/jqueryui.d.ts: | $(EUPA_DTS)
+	$(CURL) -o $@.tmp https://github.com/DefinitelyTyped/DefinitelyTyped/raw/master/jqueryui/jqueryui.d.ts
+	/usr/bin/awk -v RS="" '{ gsub( "\\.\\./jquery/jquery\\.d\\.ts", "jquery.d.ts"); print; }' $@.tmp >$@ && rm $@.tmp
+
+$(EUPA_DTS)/require.d.ts: | $(EUPA_DTS)
+	$(CURL) -o $@ https://github.com/DefinitelyTyped/DefinitelyTyped/raw/master/requirejs/require.d.ts
+
+$(EUPA_DTS)/three.d.ts: | $(EUPA_DTS)
+	$(CURL) -o $@ https://github.com/DefinitelyTyped/DefinitelyTyped/raw/master/threejs/three.d.ts
+	@#/usr/bin/awk 'BEGIN {RS="";} { gsub( "///<reference path", "/// reference path"); gsub(/export class Audio(Listener)?[^}]+}/, "/* & */"); print; }' $(BUILD)/typings/threejs/three.d.ts >$@
+
+# ----------------------------------------------------------------------
+
+$(TSC): | $(EUPA_ROOT)/bin/npm
+	$(EUPA_ROOT)/bin/npm install -g typescript >/dev/null 2>&1
+
+$(LESSC): | $(EUPA_ROOT)/bin/npm
+	$(EUPA_ROOT)/bin/npm install -g less >/dev/null 2>&1
+
+$(EUPA_ROOT)/lib/node_modules/less-plugin-clean-css: | $(EUPA_ROOT)/bin/npm
+	$(EUPA_ROOT)/bin/npm install -g less-plugin-clean-css >/dev/null 2>&1
+
+# ----------------------------------------------------------------------
+
+ifeq ($(UNAME_S),Darwin)
+  NODE_ARCHIVE_INFIX = darwin-x64
+else ifeq ($(UNAME_S),Linux)
+  NODE_ARCHIVE_INFIX = linux-x64
+else
+  $(error Unsupported platform $(UNAME_S))
+endif
+NODE_EXTRACT_DIR = $(EUPA_BUILD)/node
+
+$(EUPA_ROOT)/bin/node $(EUPA_ROOT)/bin/npm: | $(EUPA_ROOT) $(EUPA_BUILD)
+	rm -rf $(NODE_EXTRACT_DIR)
+	mkdir -p $(NODE_EXTRACT_DIR) $(EUPA_ROOT)/bin $(EUPA_ROOT)/lib
+	$(CURL) $$($(CURL) https://nodejs.org/en/download/stable/ | awk -F '(href="|")' '/$(NODE_ARCHIVE_INFIX)/ { print $$(NF-1); }') | tar -C $(NODE_EXTRACT_DIR) -xf -
+	rsync -a $(NODE_EXTRACT_DIR)/node-*/{bin,lib} $(EUPA_ROOT)
+
+# ----------------------------------------------------------------------
+
+$(EUPA_ROOT):
+	$(call make_target_dir,$(EUPA_ROOT),EUPA_ROOT)
+
+$(EUPA_BUILD):
+	$(call make_target_dir,$(EUPA_BUILD),EUPA_BUILD)
+
+$(EUPA_JS):
+	$(call make_target_dir,$(EUPA_JS),EUPA_JS)
+
+$(EUPA_DTS):
+	$(call make_target_dir,$(EUPA_DTS),EUPA_DTS)
+
+# ----------------------------------------------------------------------
+
+UGLIFY_JS_URL = https://marijnhaverbeke.nl/uglifyjs
+
+define uglify
+  @echo $(1)
+  @$(CURL) -o $@ $(UGLIFY_JS_URL)?code_url=$(1)
+endef
+
+define make_target_dir
+  @if [ -z "$(1)" ]; then echo $(2) is not set >&2; exit 1; else echo $(2)=$(1); fi
+  @if [ ! -d $(1) ]; then mkdir -p $(1); fi
+endef
+
+# ----------------------------------------------------------------------
+
+define usage
+
+Usage: make [variable-assignments] target
+Variables:
+  EUPA_ROOT - installation directory for packages, i.e. having bin/, lib/ etc.
+  EUPA_JS - installation directly for .js files (default EUPA_ROOT/js)
+  EUPA_DTS  - installation directly for .d.ts files (default EUPA_ROOT/typings)
+  JQUERY_UI_THEME - default: smoothness
+endef
