@@ -100,7 +100,7 @@ $(EUPA_JS)/three.js: | $(EUPA_JS)
 	$(CURL) -o $@ $$URL
 
 $(EUPA_JS)/resizable.js: | $(EUPA_JS)
-	$(CURL) -o $@ https://github.com/tannernetwork/resizable/raw/master/resizable.js
+	$(call uglify,https://github.com/tannernetwork/resizable/raw/master/resizable.js)
 
 # ----------------------------------------------------------------------
 
