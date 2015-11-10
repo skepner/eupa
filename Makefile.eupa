@@ -31,6 +31,11 @@ UNAME_S := $(shell uname -s)
 
 TSC = $(EUPA_ROOT)/bin/tsc
 LESSC = $(EUPA_ROOT)/bin/lessc
+NPM = $(EUPA_ROOT)/bin/npm
+
+# Note reset PREFIX before running npm (could be set by a program invoking this make)
+# otherwise npm uses it
+RUN_NPM = /usr/bin/env PREFIX= $(NPM)
 
 # ----------------------------------------------------------------------
 
@@ -110,16 +115,14 @@ $(EUPA_DTS)/three.d.ts: | $(EUPA_DTS)
 
 # ----------------------------------------------------------------------
 
-$(TSC): | $(EUPA_ROOT)/bin/npm
-	echo NPM_PREFIX=$$(env PREFIX= $(EUPA_ROOT)/bin/npm config get prefix)
-	env
-	env PREFIX= $(EUPA_ROOT)/bin/npm install -g typescript
+$(TSC): | $(NPM)
+	$(RUN_NPM) install -g typescript
 
-$(LESSC): | $(EUPA_ROOT)/bin/npm
-	$(EUPA_ROOT)/bin/npm install -g less
+$(LESSC): | $(NPM)
+	$(RUN_NPM) install -g less
 
-$(EUPA_ROOT)/lib/node_modules/less-plugin-clean-css: | $(EUPA_ROOT)/bin/npm
-	$(EUPA_ROOT)/bin/npm install -g less-plugin-clean-css
+$(EUPA_ROOT)/lib/node_modules/less-plugin-clean-css: | $(NPM)
+	$(RUN_NPM) install -g less-plugin-clean-css
 
 # ----------------------------------------------------------------------
 
@@ -132,7 +135,7 @@ else
 endif
 NODE_EXTRACT_DIR = $(EUPA_BUILD)/node
 
-$(EUPA_ROOT)/bin/node $(EUPA_ROOT)/bin/npm: | $(EUPA_ROOT) $(EUPA_BUILD)
+$(EUPA_ROOT)/bin/node $(NPM): | $(EUPA_ROOT) $(EUPA_BUILD)
 	rm -rf $(NODE_EXTRACT_DIR)
 	mkdir -p $(NODE_EXTRACT_DIR) $(EUPA_ROOT)/bin $(EUPA_ROOT)/lib
 	$(CURL) $$($(CURL) https://nodejs.org/en/download/stable/ | awk -F '(href="|")' '/$(NODE_ARCHIVE_INFIX)/ { print $$(NF-1); }') | tar -C $(NODE_EXTRACT_DIR) -xzf -
