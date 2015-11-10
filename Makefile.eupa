@@ -111,6 +111,7 @@ $(EUPA_DTS)/three.d.ts: | $(EUPA_DTS)
 # ----------------------------------------------------------------------
 
 $(TSC): | $(EUPA_ROOT)/bin/npm
+	$(EUPA_ROOT)/bin/npm config get prefix
 	$(EUPA_ROOT)/bin/npm install -g typescript
 
 $(LESSC): | $(EUPA_ROOT)/bin/npm
