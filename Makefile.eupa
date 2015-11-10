@@ -133,7 +133,7 @@ NODE_EXTRACT_DIR = $(EUPA_BUILD)/node
 $(EUPA_ROOT)/bin/node $(EUPA_ROOT)/bin/npm: | $(EUPA_ROOT) $(EUPA_BUILD)
 	rm -rf $(NODE_EXTRACT_DIR)
 	mkdir -p $(NODE_EXTRACT_DIR) $(EUPA_ROOT)/bin $(EUPA_ROOT)/lib
-	$(CURL) $$($(CURL) https://nodejs.org/en/download/stable/ | awk -F '(href="|")' '/$(NODE_ARCHIVE_INFIX)/ { print $$(NF-1); }') | tar -C $(NODE_EXTRACT_DIR) -xf -
+	$(CURL) $$($(CURL) https://nodejs.org/en/download/stable/ | awk -F '(href="|")' '/$(NODE_ARCHIVE_INFIX)/ { print $$(NF-1); }') | tar -C $(NODE_EXTRACT_DIR) -xzf -
 	rsync -a $(NODE_EXTRACT_DIR)/node-*/{bin,lib} $(EUPA_ROOT)
 
 # ----------------------------------------------------------------------
