@@ -138,7 +138,7 @@ $(EUPA_DTS)/three.d.ts: | $(EUPA_DTS)
 
 # ----------------------------------------------------------------------
 
-NPM_FIX_OUTPUT = grep -vE '[└├│\[]'
+NPM_FIX_OUTPUT = grep -vE '[└├│\[]' | tee -a /tmp/npm.log
 
 $(TSC): | $(NPM)
 	$(RUN_NPM) install -g typescript | $(NPM_FIX_OUTPUT)
