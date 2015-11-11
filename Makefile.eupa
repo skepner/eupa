@@ -41,7 +41,7 @@ NPM = $(EUPA_ROOT)/bin/npm
 # otherwise npm uses it
 RUN_NPM = /usr/bin/env PREFIX= $(NPM)
 
-EUPA_MAKEFILE = $(lastword $(MAKEFILE_LIST))
+EUPA_MAKEFILE = $(abspath $(lastword $(MAKEFILE_LIST)))
 
 export EUPA_MAKEFILE
 
