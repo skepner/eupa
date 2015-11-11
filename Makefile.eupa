@@ -1,11 +1,15 @@
 # -*- Makefile -*-
 # Eugene Skepner 2015
 
+MAKEFLAGS = -w
+
 # ----------------------------------------------------------------------
 # Variables to be set by user of this Makefile
 
 ifeq ($(EUPA_ROOT),)
 $(error EUPA_ROOT is not set)
+else
+override EUPA_ROOT := $(abspath $(EUPA_ROOT))
 endif
 
 # js files installation dir
@@ -37,13 +41,18 @@ NPM = $(EUPA_ROOT)/bin/npm
 # otherwise npm uses it
 RUN_NPM = /usr/bin/env PREFIX= $(NPM)
 
+EUPA_MAKEFILE = $(lastword $(MAKEFILE_LIST))
+
+export EUPA_MAKEFILE
+
 # ----------------------------------------------------------------------
 
-eupa:
+eupa_all:
 	$(error $(usage))
 
 # ----------------------------------------------------------------------
 
+antigenic-map-viewer: $(EUPA_ROOT)/share/antigenic-map-viewer/amv-level2.js
 jquery jquery.js: $(EUPA_JS)/jquery.js $(EUPA_DTS)/jquery.d.ts $(EUPA_JS)/jquery.mousewheel.js
 jquery-ui jquery-ui.js: $(EUPA_JS)/jquery-ui.js $(EUPA_DTS)/jqueryui.d.ts
 lessc less: $(LESSC) $(EUPA_ROOT)/lib/node_modules/less-plugin-clean-css
@@ -99,6 +108,17 @@ $(EUPA_JS)/resizable.js: | $(EUPA_JS)
 
 $(EUPA_JS)/md5.js: | $(EUPA_JS)
 	$(call uglify,https://github.com/emn178/js-md5/raw/master/src/md5.js)
+
+# ----------------------------------------------------------------------
+
+# $(EUPA_ROOT)/share/antigenic-map-viewer/amv-level2.js: | $(EUPA_ROOT)
+#	AMV_BUILD=$(EUPA_BUILD)/antigenic-map-viewer &&\
+#	if [ -d "$$AMV_BUILD" ]; then (cd "$$AMV_BUILD" && git pull); else git clone https://github.com/acorg/antigenic-map-viewer.git "$$AMV_BUILD"; fi &&\
+#	$(MAKE) PREFIX=$(EUPA_ROOT) -C "$$AMV_BUILD" install
+
+$(EUPA_ROOT)/share/antigenic-map-viewer/amv-level2.js: | $(EUPA_BUILD)
+	rsync -a --exclude .git ~/ac/antigenic-map-viewer $(EUPA_BUILD)
+	$(MAKE) PREFIX=$(EUPA_ROOT) EUPA_ROOT=$(EUPA_ROOT) -C $(EUPA_BUILD)/antigenic-map-viewer install
 
 # ----------------------------------------------------------------------
 
@@ -169,7 +189,7 @@ define uglify
 endef
 
 define make_target_dir
-  @if [ -z "$(1)" ]; then echo $(2) is not set >&2; exit 1; else echo $(2)=$(1); fi
+  @if [ -z "$(1)" ]; then echo $(2) is not set >&2; exit 1; else echo mkdir $(1); fi
   @if [ ! -d $(1) ]; then mkdir -p $(1); fi
 endef
 
@@ -180,7 +200,8 @@ define usage
 Usage: make [variable-assignments] target
 Variables:
   EUPA_ROOT - installation directory for packages, i.e. having bin/, lib/ etc.
-  EUPA_JS - installation directly for .js files (default EUPA_ROOT/js)
-  EUPA_DTS  - installation directly for .d.ts files (default EUPA_ROOT/typings)
   JQUERY_UI_THEME - default: smoothness
 endef
+
+  # EUPA_JS - installation directly for .js files (default EUPA_ROOT/js)
+  # EUPA_DTS  - installation directly for .d.ts files (default EUPA_ROOT/typings)

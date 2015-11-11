@@ -7,8 +7,8 @@ Add to Makefile
 
     all: <your targets here>
 
-    EUPA_ROOT = $(BUILD)
-    EUPA_JS = $(DIST)
+    EUPA_ROOT ?= $(BUILD)
+    EUPA_JS ?= $(DIST)
 
     ifeq ($(findstring clean,$(MAKECMDGOALS)),)
     ifeq ($(wildcard eupa/Makefile.eupa),)
