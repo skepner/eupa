@@ -141,13 +141,13 @@ $(EUPA_DTS)/three.d.ts: | $(EUPA_DTS)
 NPM_FIX_OUTPUT = grep -vE '[└├│\[]' | tee -a /tmp/npm.log
 
 $(TSC): | $(NPM)
-	$(RUN_NPM) install -g typescript | $(NPM_FIX_OUTPUT)
+	$(RUN_NPM) install -g typescript 2>&1 | $(NPM_FIX_OUTPUT)
 
 $(LESSC): | $(NPM)
-	$(RUN_NPM) install -g less | $(NPM_FIX_OUTPUT)
+	$(RUN_NPM) install -g less 2>&1 | $(NPM_FIX_OUTPUT)
 
 $(EUPA_ROOT)/lib/node_modules/less-plugin-clean-css: | $(NPM)
-	$(RUN_NPM) install -g less-plugin-clean-css | $(NPM_FIX_OUTPUT)
+	$(RUN_NPM) install -g less-plugin-clean-css 2>&1 | $(NPM_FIX_OUTPUT)
 
 # ----------------------------------------------------------------------
 
