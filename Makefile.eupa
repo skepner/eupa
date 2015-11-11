@@ -45,18 +45,13 @@ eupa:
 # ----------------------------------------------------------------------
 
 jquery jquery.js: $(EUPA_JS)/jquery.js $(EUPA_DTS)/jquery.d.ts $(EUPA_JS)/jquery.mousewheel.js
-
 jquery-ui jquery-ui.js: $(EUPA_JS)/jquery-ui.js $(EUPA_DTS)/jqueryui.d.ts
-
-require.js: $(EUPA_JS)/require.js $(EUPA_DTS)/require.d.ts $(EUPA_JS)/css.js $(EUPA_JS)/json.js $(EUPA_JS)/text.js
-
-three.js: $(EUPA_JS)/three.js $(EUPA_DTS)/three.d.ts
-
-tsc typescript: $(TSC)
-
 lessc less: $(LESSC) $(EUPA_ROOT)/lib/node_modules/less-plugin-clean-css
-
+md5.js: $(EUPA_JS)/md5.js
+require.js: $(EUPA_JS)/require.js $(EUPA_DTS)/require.d.ts $(EUPA_JS)/css.js $(EUPA_JS)/json.js $(EUPA_JS)/text.js
 resizable.js: $(EUPA_JS)/resizable.js
+three.js: $(EUPA_JS)/three.js $(EUPA_DTS)/three.d.ts
+tsc typescript: $(TSC)
 
 # ----------------------------------------------------------------------
 
@@ -101,6 +96,9 @@ $(EUPA_JS)/three.js: | $(EUPA_JS)
 
 $(EUPA_JS)/resizable.js: | $(EUPA_JS)
 	$(call uglify,https://github.com/tannernetwork/resizable/raw/master/resizable.js)
+
+$(EUPA_JS)/md5.js: | $(EUPA_JS)
+	$(call uglify,https://github.com/emn178/js-md5/raw/master/src/md5.js)
 
 # ----------------------------------------------------------------------
 
