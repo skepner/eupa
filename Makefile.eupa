@@ -33,6 +33,7 @@ UNAME_S := $(shell uname -s)
 TSC = $(EUPA_BUILD)/bin/tsc
 TSC_RUN = $(TSC) -m amd --removeComments -t ES5 --noEmitOnError --noImplicitAny
 LESSC = $(EUPA_BUILD)/bin/lessc
+LESSC_RUN = $(LESSC) --plugin=less-plugin-clean-css="advanced"
 NPM = $(EUPA_BUILD)/bin/npm
 
 # Note reset PREFIX before running npm (could be set by a program invoking this make)
