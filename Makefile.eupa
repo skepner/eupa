@@ -6,23 +6,17 @@ MAKEFLAGS = -w
 # ----------------------------------------------------------------------
 # Variables to be set by user of this Makefile
 
-ifeq ($(EUPA_ROOT),)
-$(error EUPA_ROOT is not set)
-else
-override EUPA_ROOT := $(abspath $(EUPA_ROOT))
-endif
-
-# js files installation dir
-EUPA_JS ?= $(EUPA_ROOT)/js
-
-# d.ts (typescript definitions) files installation dir
-EUPA_DTS ?= $(EUPA_ROOT)/typings
-
-# binaries and intermediate files installation dir
-EUPA_BUILD ?= $(EUPA_ROOT)/build
-
 # default theme for jquery_ui
 JQUERY_UI_THEME ?= smoothness
+
+# ----------------------------------------------------------------------
+
+override EUPA_DIST := $(abspath $(EUPA_DIST))
+override EUPA_BUILD := $(abspath $(EUPA_BUILD))
+
+EUPA_MAKEFILE := $(abspath $(lastword $(MAKEFILE_LIST)))
+
+SUBMAKE = $(MAKE) EUPA_DIST=$(EUPA_DIST) EUPA_BUILD=$(EUPA_BUILD) EUPA_MAKEFILE=$(EUPA_MAKEFILE)
 
 # ----------------------------------------------------------------------
 
@@ -33,49 +27,49 @@ UNAME_S := $(shell uname -s)
 
 # ----------------------------------------------------------------------
 
-TSC = $(EUPA_ROOT)/bin/tsc
-LESSC = $(EUPA_ROOT)/bin/lessc
-NPM = $(EUPA_ROOT)/bin/npm
+TSC = $(EUPA_BUILD)/bin/tsc
+LESSC = $(EUPA_BUILD)/bin/lessc
+NPM = $(EUPA_BUILD)/bin/npm
 
 # Note reset PREFIX before running npm (could be set by a program invoking this make)
 # otherwise npm uses it
 RUN_NPM = /usr/bin/env PREFIX= $(NPM)
-
-EUPA_MAKEFILE = $(abspath $(lastword $(MAKEFILE_LIST)))
-
-export EUPA_MAKEFILE
 
 # ----------------------------------------------------------------------
 
 eupa_all:
 	$(error $(usage))
 
+eupa_clean:
+	rm -rf $(EUPA_BUILD) $(EUPA_DIST)
+
 # ----------------------------------------------------------------------
 
-antigenic-map-viewer: $(EUPA_ROOT)/share/antigenic-map-viewer/amv-level2.js
-jquery jquery.js: $(EUPA_JS)/jquery.js $(EUPA_DTS)/jquery.d.ts $(EUPA_JS)/jquery.mousewheel.js
-jquery-ui jquery-ui.js: $(EUPA_JS)/jquery-ui.js $(EUPA_DTS)/jqueryui.d.ts
-lessc less: $(LESSC) $(EUPA_ROOT)/lib/node_modules/less-plugin-clean-css
-md5.js: $(EUPA_JS)/md5.js
-require.js: $(EUPA_JS)/require.js $(EUPA_DTS)/require.d.ts $(EUPA_JS)/css.js $(EUPA_JS)/json.js $(EUPA_JS)/text.js
-resizable.js: $(EUPA_JS)/resizable.js
-three.js: $(EUPA_JS)/three.js $(EUPA_DTS)/three.d.ts
+antigenic-map-viewer: $(EUPA_BUILD)/antigenic-map-viewer/amv-level2.js
+
+jquery jquery.js: $(EUPA_DIST)/jquery.js $(EUPA_BUILD)/jquery.d.ts $(EUPA_DIST)/jquery.mousewheel.js
+jquery-ui jquery-ui.js: $(EUPA_DIST)/jquery-ui.js $(EUPA_BUILD)/jqueryui.d.ts
+lessc less: $(LESSC) $(EUPA_BUILD)/lib/node_modules/less-plugin-clean-css
+md5.js: $(EUPA_DIST)/md5.js
+require.js: $(EUPA_DIST)/require.js $(EUPA_BUILD)/require.d.ts $(EUPA_DIST)/css.js $(EUPA_DIST)/json.js $(EUPA_DIST)/text.js
+resizable.js: $(EUPA_DIST)/resizable.js
+three.js: $(EUPA_DIST)/three.js $(EUPA_BUILD)/three.d.ts
 tsc typescript: $(TSC)
 
 # ----------------------------------------------------------------------
 
-$(EUPA_JS)/jquery.js: | $(EUPA_JS)
+$(EUPA_DIST)/jquery.js: | $(EUPA_DIST)
 	@HOST="http://code.jquery.com" &&\
 	BASENAME=$$(curl -s "$$HOST" | awk -F 'href=' '/jquery-2.+min/ { split($$NF, a, substr($$NF, 1, 1)); print a[2];}') &&\
 	echo downloading $$HOST$$BASENAME &&\
 	$(CURL) -o $@ "$$HOST$$BASENAME"
 	@head -n 1 $@
 
-$(EUPA_JS)/jquery.mousewheel.js: | $(EUPA_JS)
+$(EUPA_DIST)/jquery.mousewheel.js: | $(EUPA_DIST)
 	$(CURL) -o $@ https://github.com/jquery/jquery-mousewheel/raw/master/jquery.mousewheel.min.js
 	@grep Mousewheel $@
 
-$(EUPA_JS)/jquery-ui.js: | $(EUPA_JS) $(EUPA_BUILD)
+$(EUPA_DIST)/jquery-ui.js: | $(EUPA_DIST) $(EUPA_BUILD)
 	@JQUERY_UI_VERSION=$$($(CURL) http://jqueryui.com/download/ | awk -F '(download/jquery-ui-|\.zip)' '{s=tolower($$0)} s~/href.+stable/ {print $$2}') &&\
 	  echo Downloading jquery-ui $$JQUERY_UI_VERSION &&\
 	  $(CURL) -o $(EUPA_BUILD)/jquery-ui.zip http://jqueryui.com/resources/download/jquery-ui-$$JQUERY_UI_VERSION.zip &&\
@@ -85,54 +79,55 @@ $(EUPA_JS)/jquery-ui.js: | $(EUPA_JS) $(EUPA_BUILD)
 	@mkdir -p $(dir $@)/images
 	@unzip -q -o -j -d $(dir $@)/images $(EUPA_BUILD)/jquery-ui-themes.zip \*/themes/$(JQUERY_UI_THEME)/images/\*
 
-$(EUPA_JS)/require.js: | $(EUPA_JS)
+$(EUPA_DIST)/require.js: | $(EUPA_DIST)
 	$(CURL) -o $@ $$($(CURL) http://requirejs.org/docs/download.html | awk -F '(href="|")' '/href=.+\/minified/ { print $$(NF-1); }')
 
-$(EUPA_JS)/css.js: | $(EUPA_JS)
+$(EUPA_DIST)/css.js: | $(EUPA_DIST)
 	$(CURL) -o $@ https://raw.github.com/dimaxweb/CSSLoader/master/dist/css.js
 
-$(EUPA_JS)/json.js: | $(EUPA_JS)
+$(EUPA_DIST)/json.js: | $(EUPA_DIST)
 	$(call uglify,https://github.com/millermedeiros/requirejs-plugins/raw/master/src/json.js)
 
-$(EUPA_JS)/text.js: | $(EUPA_JS)
+$(EUPA_DIST)/text.js: | $(EUPA_DIST)
 	$(call uglify,https://github.com/millermedeiros/requirejs-plugins/raw/master/lib/text.js)
 
-$(EUPA_JS)/three.js: | $(EUPA_JS)
+$(EUPA_DIST)/three.js: | $(EUPA_DIST)
 	@LATEST=$$(curl -s -D - https://github.com/mrdoob/three.js/releases/latest | awk -F '[/\r]' '/^Location:/ {printf $$(NF-1);}') &&\
 	URL=https://cdnjs.cloudflare.com/ajax/libs/three.js/$$LATEST/three.min.js &&\
 	echo $$URL &&\
 	$(CURL) -o $@ $$URL
 
-$(EUPA_JS)/resizable.js: | $(EUPA_JS)
+$(EUPA_DIST)/resizable.js: | $(EUPA_DIST)
 	$(call uglify,https://github.com/tannernetwork/resizable/raw/master/resizable.js)
 
-$(EUPA_JS)/md5.js: | $(EUPA_JS)
+$(EUPA_DIST)/md5.js: | $(EUPA_DIST)
 	$(call uglify,https://github.com/emn178/js-md5/raw/master/src/md5.js)
 
 # ----------------------------------------------------------------------
 
-# $(EUPA_ROOT)/share/antigenic-map-viewer/amv-level2.js: | $(EUPA_ROOT)
+# $(EUPA_BUILD)/antigenic-map-viewer/amv-level2.js: | $(EUPA_BUILD)
 #	AMV_BUILD=$(EUPA_BUILD)/antigenic-map-viewer &&\
 #	if [ -d "$$AMV_BUILD" ]; then (cd "$$AMV_BUILD" && git pull); else git clone https://github.com/acorg/antigenic-map-viewer.git "$$AMV_BUILD"; fi &&\
-#	$(MAKE) PREFIX=$(EUPA_ROOT) -C "$$AMV_BUILD" install
+#	$(SUBMAKE) PREFIX=$(EUPA_BUILD)/amv-install -C "$$AMV_BUILD" install
 
-$(EUPA_ROOT)/share/antigenic-map-viewer/amv-level2.js: | $(EUPA_BUILD)
-	rsync -a --exclude .git ~/ac/antigenic-map-viewer $(EUPA_BUILD)
-	$(MAKE) PREFIX=$(EUPA_ROOT) EUPA_ROOT=$(EUPA_ROOT) -C $(EUPA_BUILD)/antigenic-map-viewer install
+$(EUPA_BUILD)/antigenic-map-viewer/amv-level2.js: | $(EUPA_BUILD)
+	$(warning AMV via rsync)
+	rsync -a --exclude .git --exclude build --exclude dist --exclude eupa ~/ac/antigenic-map-viewer $(EUPA_BUILD)
+	$(SUBMAKE) PREFIX=$(EUPA_BUILD) -C $(EUPA_BUILD)/antigenic-map-viewer install
 
 # ----------------------------------------------------------------------
 
-$(EUPA_DTS)/%.d.ts: | $(EUPA_DTS)
+$(EUPA_BUILD)/%.d.ts: | $(EUPA_BUILD)
 	$(CURL) -sL -o $@ https://github.com/DefinitelyTyped/DefinitelyTyped/raw/master/$*/$*.d.ts
 
-$(EUPA_DTS)/jqueryui.d.ts: | $(EUPA_DTS)
+$(EUPA_BUILD)/jqueryui.d.ts: | $(EUPA_BUILD)
 	$(CURL) -o $@.tmp https://github.com/DefinitelyTyped/DefinitelyTyped/raw/master/jqueryui/jqueryui.d.ts
 	/usr/bin/awk -v RS="" '{ gsub( "\\.\\./jquery/jquery\\.d\\.ts", "jquery.d.ts"); print; }' $@.tmp >$@ && rm $@.tmp
 
-$(EUPA_DTS)/require.d.ts: | $(EUPA_DTS)
+$(EUPA_BUILD)/require.d.ts: | $(EUPA_BUILD)
 	$(CURL) -o $@ https://github.com/DefinitelyTyped/DefinitelyTyped/raw/master/requirejs/require.d.ts
 
-$(EUPA_DTS)/three.d.ts: | $(EUPA_DTS)
+$(EUPA_BUILD)/three.d.ts: | $(EUPA_BUILD)
 	$(CURL) -o $@ https://github.com/DefinitelyTyped/DefinitelyTyped/raw/master/threejs/three.d.ts
 	@#/usr/bin/awk 'BEGIN {RS="";} { gsub( "///<reference path", "/// reference path"); gsub(/export class Audio(Listener)?[^}]+}/, "/* & */"); print; }' $(BUILD)/typings/threejs/three.d.ts >$@
 
@@ -146,7 +141,7 @@ $(TSC): | $(NPM)
 $(LESSC): | $(NPM)
 	$(RUN_NPM) install -g less 2>&1 | $(NPM_FIX_OUTPUT)
 
-$(EUPA_ROOT)/lib/node_modules/less-plugin-clean-css: | $(NPM)
+$(EUPA_BUILD)/lib/node_modules/less-plugin-clean-css: | $(NPM)
 	$(RUN_NPM) install -g less-plugin-clean-css 2>&1 | $(NPM_FIX_OUTPUT)
 
 # ----------------------------------------------------------------------
@@ -160,26 +155,20 @@ else
 endif
 NODE_EXTRACT_DIR = $(EUPA_BUILD)/node
 
-$(EUPA_ROOT)/bin/node $(NPM): | $(EUPA_ROOT) $(EUPA_BUILD)
+$(EUPA_BUILD)/bin/node $(NPM): | $(EUPA_BUILD) $(EUPA_BUILD)
 	rm -rf $(NODE_EXTRACT_DIR)
-	mkdir -p $(NODE_EXTRACT_DIR) $(EUPA_ROOT)/bin $(EUPA_ROOT)/lib
+	mkdir -p $(NODE_EXTRACT_DIR) $(EUPA_BUILD)/bin $(EUPA_BUILD)/lib
 	$(CURL) $$($(CURL) https://nodejs.org/en/download/stable/ | awk -F '(href="|")' '/$(NODE_ARCHIVE_INFIX)/ { print $$(NF-1); }') | tar -C $(NODE_EXTRACT_DIR) -xzf -
-	rsync -a $(NODE_EXTRACT_DIR)/node-*/bin $(EUPA_ROOT)
-	rsync -a $(NODE_EXTRACT_DIR)/node-*/lib $(EUPA_ROOT)
+	rsync -a $(NODE_EXTRACT_DIR)/node-*/bin $(EUPA_BUILD)
+	rsync -a $(NODE_EXTRACT_DIR)/node-*/lib $(EUPA_BUILD)
 
 # ----------------------------------------------------------------------
-
-$(EUPA_ROOT):
-	$(call make_target_dir,$(EUPA_ROOT),EUPA_ROOT)
 
 $(EUPA_BUILD):
 	$(call make_target_dir,$(EUPA_BUILD),EUPA_BUILD)
 
-$(EUPA_JS):
-	$(call make_target_dir,$(EUPA_JS),EUPA_JS)
-
-$(EUPA_DTS):
-	$(call make_target_dir,$(EUPA_DTS),EUPA_DTS)
+$(EUPA_DIST):
+	$(call make_target_dir,$(EUPA_DIST),EUPA_DIST)
 
 # ----------------------------------------------------------------------
 
@@ -201,9 +190,19 @@ define usage
 
 Usage: make [variable-assignments] target
 Variables:
-  EUPA_ROOT - installation directory for packages, i.e. having bin/, lib/ etc.
+  EUPA_DIST - installation directly for .js files
+  EUPA_BUILD - installation directory for packages, i.e. having bin/, lib/ etc., d.ts files
   JQUERY_UI_THEME - default: smoothness
 endef
 
-  # EUPA_JS - installation directly for .js files (default EUPA_ROOT/js)
-  # EUPA_DTS  - installation directly for .d.ts files (default EUPA_ROOT/typings)
+define notset
+
+ERROR: Either EUPA_DIST or EUPA_BUILD not set:
+  EUPA_DIST=$(EUPA_DIST)
+  EUPA_BUILD=$(EUPA_BUILD)
+$(usage)
+endef
+
+ifeq ($(and $(EUPA_DIST),$(EUPA_BUILD)),)
+  $(error $(notset))
+endif
