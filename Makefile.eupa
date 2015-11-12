@@ -30,7 +30,8 @@ UNAME_S := $(shell uname -s)
 
 # ----------------------------------------------------------------------
 
-TSC = $(EUPA_BUILD)/bin/tsc -m amd --removeComments -t ES5 --noEmitOnError --noImplicitAny
+TSC = $(EUPA_BUILD)/bin/tsc
+TSC_RUN = $(TSC) -m amd --removeComments -t ES5 --noEmitOnError --noImplicitAny
 LESSC = $(EUPA_BUILD)/bin/lessc
 NPM = $(EUPA_BUILD)/bin/npm
 
