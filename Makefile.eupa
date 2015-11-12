@@ -105,15 +105,15 @@ $(EUPA_DIST)/md5.js: | $(EUPA_DIST)
 
 # ----------------------------------------------------------------------
 
-# $(EUPA_BUILD)/antigenic-map-viewer/amv-level2.js: | $(EUPA_BUILD)
-#	AMV_BUILD=$(EUPA_BUILD)/antigenic-map-viewer &&\
-#	if [ -d "$$AMV_BUILD" ]; then (cd "$$AMV_BUILD" && git pull); else git clone https://github.com/acorg/antigenic-map-viewer.git "$$AMV_BUILD"; fi &&\
-#	$(SUBMAKE) PREFIX=$(EUPA_BUILD)/amv-install -C "$$AMV_BUILD" install
-
 $(EUPA_BUILD)/antigenic-map-viewer/amv-level2.js: | $(EUPA_BUILD)
-	$(warning AMV via rsync)
-	rsync -a --exclude .git --exclude build --exclude dist --exclude eupa ~/ac/antigenic-map-viewer $(EUPA_BUILD)
-	$(SUBMAKE) PREFIX=$(EUPA_BUILD) -C $(EUPA_BUILD)/antigenic-map-viewer install
+	AMV_BUILD=$(EUPA_BUILD)/antigenic-map-viewer &&\
+	if [ -d "$$AMV_BUILD" ]; then (cd "$$AMV_BUILD" && git pull); else git clone https://github.com/acorg/antigenic-map-viewer.git "$$AMV_BUILD"; fi &&\
+	$(SUBMAKE) PREFIX=$(EUPA_BUILD)/amv-install -C "$$AMV_BUILD" install
+
+# $(EUPA_BUILD)/antigenic-map-viewer/amv-level2.js: | $(EUPA_BUILD)
+#	$(warning AMV via rsync)
+#	rsync -a --exclude .git --exclude build --exclude dist --exclude eupa ~/ac/antigenic-map-viewer $(EUPA_BUILD)
+#	$(SUBMAKE) PREFIX=$(EUPA_BUILD) -C $(EUPA_BUILD)/antigenic-map-viewer install
 
 # ----------------------------------------------------------------------
 
