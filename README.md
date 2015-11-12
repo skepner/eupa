@@ -7,20 +7,20 @@ Add to Makefile
 
     all: <your targets here>
 
-    EUPA_ROOT ?= $(BUILD)
-    EUPA_JS ?= $(DIST)
+    EUPA_MAKEFILE ?= ...
+    EUPA_DIST ?= $(DIST)
+    EUPA_BUILD ?= $(BUILD)
 
     ifeq ($(findstring clean,$(MAKECMDGOALS)),)
-    ifeq ($(wildcard eupa/Makefile.eupa),)
-      $(shell git clone https://github.com/skepner/eupa.git)
+    ifeq ($(wildcard $(EUPA_MAKEFILE)),)
+      $(shell git clone https://github.com/skepner/eupa.git $(dir $(EUPA_MAKEFILE)))
     endif
-    -include eupa/Makefile.eupa
+    include $(EUPA_MAKEFILE)
     endif
 
     ... <other targets> ...
 
-    distclean: clean
-        rm -rf $(BUILD) eupa
+    distclean: clean eupa_clean
 
 Add to .gitignore
 
