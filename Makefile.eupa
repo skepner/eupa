@@ -30,10 +30,12 @@ UNAME_S := $(shell uname -s)
 
 # ----------------------------------------------------------------------
 
-TSC = $(EUPA_BUILD)/bin/tsc
-TSC_RUN = $(TSC) -m amd --removeComments -t ES5 --noEmitOnError --noImplicitAny
+COFFEE = $(EUPA_BUILD)/bin/coffee
+COFFEE_RUN = $(COFFEE)
 LESSC = $(EUPA_BUILD)/bin/lessc
 LESSC_RUN = $(LESSC) --plugin=less-plugin-clean-css="advanced"
+TSC = $(EUPA_BUILD)/bin/tsc
+TSC_RUN = $(TSC) -m amd --removeComments -t ES5 --noEmitOnError --noImplicitAny
 NPM = $(EUPA_BUILD)/bin/npm
 
 # Note reset PREFIX before running npm (could be set by a program invoking this make)
@@ -51,7 +53,7 @@ eupa_clean:
 # ----------------------------------------------------------------------
 
 antigenic-map-viewer: $(EUPA_BUILD)/antigenic-map-viewer/amv-level2.js
-
+coffeescript coffee-script: $(COFFEE)
 jquery jquery.js: $(EUPA_DIST)/jquery.js $(EUPA_BUILD)/jquery.d.ts $(EUPA_DIST)/jquery.mousewheel.js
 jquery-ui jquery-ui.js: $(EUPA_DIST)/jquery-ui.js $(EUPA_BUILD)/jqueryui.d.ts
 lessc less: $(LESSC) $(EUPA_BUILD)/lib/node_modules/less-plugin-clean-css
@@ -140,11 +142,14 @@ $(EUPA_BUILD)/three.d.ts: | $(EUPA_BUILD)
 
 NPM_FIX_OUTPUT = grep -vE '[└├│\[]'
 
-$(TSC): | $(NPM)
-	$(RUN_NPM) install -g typescript 2>&1 | $(NPM_FIX_OUTPUT)
+$(COFFEE): | $(NPM)
+	$(RUN_NPM) install -g coffee-script 2>&1 | $(NPM_FIX_OUTPUT)
 
 $(LESSC): | $(NPM)
 	$(RUN_NPM) install -g less 2>&1 | $(NPM_FIX_OUTPUT)
+
+$(TSC): | $(NPM)
+	$(RUN_NPM) install -g typescript 2>&1 | $(NPM_FIX_OUTPUT)
 
 $(EUPA_BUILD)/lib/node_modules/less-plugin-clean-css: | $(NPM)
 	$(RUN_NPM) install -g less-plugin-clean-css 2>&1 | $(NPM_FIX_OUTPUT)
