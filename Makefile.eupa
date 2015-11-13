@@ -30,14 +30,18 @@ UNAME_S := $(shell uname -s)
 
 # ----------------------------------------------------------------------
 
-COFFEE = $(EUPA_BUILD)/bin/coffee
+EUPA_BIN = $(EUPA_BUILD)/bin
+
+COFFEE = $(EUPA_BIN)/coffee
 COFFEE_RUN = $(COFFEE)
-COFFEELINT = $(EUPA_BUILD)/bin/coffeelint
-LESSC = $(EUPA_BUILD)/bin/lessc
+COFFEELINT = $(EUPA_BIN)/coffeelint
+LESSC = $(EUPA_BIN)/lessc
 LESSC_RUN = $(LESSC) --plugin=less-plugin-clean-css="advanced"
-TSC = $(EUPA_BUILD)/bin/tsc
+TSC = $(EUPA_BIN)/tsc
 TSC_RUN = $(TSC) -m amd --removeComments -t ES5 --noEmitOnError --noImplicitAny
-NPM = $(EUPA_BUILD)/bin/npm
+NPM = $(EUPA_BIN)/npm
+UGLIFYCSS = $(EUPA_BIN)/uglifycss
+UGLIFYJS = $(EUPA_BIN)/uglifyjs
 
 # Note reset PREFIX before running npm (could be set by a program invoking this make)
 # otherwise npm uses it
@@ -64,6 +68,8 @@ require.js: $(EUPA_DIST)/require.js $(EUPA_BUILD)/require.d.ts $(EUPA_DIST)/css.
 resizable.js: $(EUPA_DIST)/resizable.js $(EUPA_DIST)/resizable.css
 three.js: $(EUPA_DIST)/three.js $(EUPA_BUILD)/three.d.ts
 tsc typescript: $(TSC)
+uglifycss: $(UGLIFYCSS)
+uglifyjs: $(UGLIFYJS)
 
 # ----------------------------------------------------------------------
 
@@ -94,11 +100,11 @@ $(EUPA_DIST)/require.js: | $(EUPA_DIST)
 $(EUPA_DIST)/css.js: | $(EUPA_DIST)
 	$(CURL) -o $@ https://raw.github.com/dimaxweb/CSSLoader/master/dist/css.js
 
-$(EUPA_DIST)/json.js: | $(EUPA_DIST)
-	$(call uglify,https://github.com/millermedeiros/requirejs-plugins/raw/master/src/json.js)
+$(EUPA_DIST)/json.js: | $(EUPA_DIST) $(UGLIFYJS)
+	$(call uglify_js,https://github.com/millermedeiros/requirejs-plugins/raw/master/src/json.js)
 
-$(EUPA_DIST)/text.js: | $(EUPA_DIST)
-	$(call uglify,https://github.com/millermedeiros/requirejs-plugins/raw/master/lib/text.js)
+$(EUPA_DIST)/text.js: | $(EUPA_DIST) $(UGLIFYJS)
+	$(call uglify_js,https://github.com/millermedeiros/requirejs-plugins/raw/master/lib/text.js)
 
 $(EUPA_DIST)/three.js: | $(EUPA_DIST)
 	@LATEST=$$(curl -s -D - https://github.com/mrdoob/three.js/releases/latest | awk -F '[/\r]' '/^Location:/ {printf $$(NF-1);}') &&\
@@ -106,14 +112,14 @@ $(EUPA_DIST)/three.js: | $(EUPA_DIST)
 	echo $$URL &&\
 	$(CURL) -o $@ $$URL
 
-$(EUPA_DIST)/resizable.js: | $(EUPA_DIST)
-	$(call uglify,https://github.com/tannernetwork/resizable/raw/master/resizable.js)
+$(EUPA_DIST)/resizable.js: | $(EUPA_DIST) $(UGLIFYJS)
+	$(call uglify_js,https://github.com/tannernetwork/resizable/raw/master/resizable.js)
 
-$(EUPA_DIST)/resizable.css: | $(EUPA_DIST)
-	$(call uglify,https://github.com/tannernetwork/resizable/raw/master/resizable.css)
+$(EUPA_DIST)/resizable.css: | $(EUPA_DIST) $(UGLIFYCSS)
+	$(call uglify_css,https://github.com/tannernetwork/resizable/raw/master/resizable.css)
 
-$(EUPA_DIST)/md5.js: | $(EUPA_DIST)
-	$(call uglify,https://github.com/emn178/js-md5/raw/master/src/md5.js)
+$(EUPA_DIST)/md5.js: | $(EUPA_DIST) $(UGLIFYJS)
+	$(call uglify_js,https://github.com/emn178/js-md5/raw/master/src/md5.js)
 
 # ----------------------------------------------------------------------
 
@@ -162,6 +168,12 @@ $(TSC): | $(NPM)
 $(EUPA_BUILD)/lib/node_modules/less-plugin-clean-css: | $(NPM)
 	$(RUN_NPM) install -g less-plugin-clean-css 2>&1 | $(NPM_FIX_OUTPUT)
 
+$(UGLIFYCSS): | $(NPM)
+	$(RUN_NPM) install -g uglifycss 2>&1 | $(NPM_FIX_OUTPUT)
+
+$(UGLIFYJS): | $(NPM)
+	$(RUN_NPM) install -g uglifyjs 2>&1 | $(NPM_FIX_OUTPUT)
+
 # ----------------------------------------------------------------------
 
 ifeq ($(UNAME_S),Darwin)
@@ -173,9 +185,9 @@ else
 endif
 NODE_EXTRACT_DIR = $(EUPA_BUILD)/node
 
-$(EUPA_BUILD)/bin/node $(NPM): | $(EUPA_BUILD) $(EUPA_BUILD)
+$(EUPA_BIN)/node $(NPM): | $(EUPA_BUILD) $(EUPA_BUILD)
 	rm -rf $(NODE_EXTRACT_DIR)
-	mkdir -p $(NODE_EXTRACT_DIR) $(EUPA_BUILD)/bin $(EUPA_BUILD)/lib
+	mkdir -p $(NODE_EXTRACT_DIR) $(EUPA_BIN) $(EUPA_BUILD)/lib
 	$(CURL) $$($(CURL) https://nodejs.org/en/download/stable/ | awk -F '(href="|")' '/$(NODE_ARCHIVE_INFIX)/ { print $$(NF-1); }') | tar -C $(NODE_EXTRACT_DIR) -xzf -
 	rsync -a $(NODE_EXTRACT_DIR)/node-*/bin $(EUPA_BUILD)
 	rsync -a $(NODE_EXTRACT_DIR)/node-*/lib $(EUPA_BUILD)
@@ -190,11 +202,21 @@ $(EUPA_DIST):
 
 # ----------------------------------------------------------------------
 
-UGLIFY_JS_URL = https://marijnhaverbeke.nl/uglifyjs
+# UGLIFY_JS_URL = https://marijnhaverbeke.nl/uglifyjs
 
-define uglify
-  @echo $(1)
-  @$(CURL) -o $@ $(UGLIFY_JS_URL)?code_url=$(1)
+# define uglify
+#   @echo $(1)
+#   @$(CURL) -o $@ $(UGLIFY_JS_URL)?code_url=$(1)
+# endef
+
+define uglify_css
+  $(CURL) -o $@.tmp $(1)
+  $(UGLIFYCSS) --ugly-comments $@.tmp >$@
+  rm $@.tmp
+endef
+
+define uglify_js
+  $(CURL) $(1) | $(UGLIFYJS) --screw-ie8 -c -o $@
 endef
 
 define make_target_dir
