@@ -65,7 +65,7 @@ jquery-ui jquery-ui.js: $(EUPA_DIST)/jquery-ui.js $(EUPA_BUILD)/jqueryui.d.ts
 lessc less: $(LESSC) $(EUPA_BUILD)/lib/node_modules/less-plugin-clean-css
 md5.js: $(EUPA_DIST)/md5.js
 require.js: $(EUPA_DIST)/require.js $(EUPA_BUILD)/require.d.ts $(EUPA_DIST)/css.js $(EUPA_DIST)/json.js $(EUPA_DIST)/text.js
-resizable.js: $(EUPA_DIST)/resizable.js $(EUPA_DIST)/resizable.css
+# resizable.js: $(EUPA_DIST)/resizable.js $(EUPA_DIST)/resizable.css
 three.js: $(EUPA_DIST)/three.js $(EUPA_BUILD)/three.d.ts
 tsc typescript: $(TSC)
 uglifycss: $(UGLIFYCSS)
@@ -112,11 +112,11 @@ $(EUPA_DIST)/three.js: | $(EUPA_DIST)
 	echo $$URL &&\
 	$(CURL) -o $@ $$URL
 
-$(EUPA_DIST)/resizable.js: | $(EUPA_DIST) $(UGLIFYJS)
-	$(call uglify_js,https://github.com/tannernetwork/resizable/raw/master/resizable.js)
+# $(EUPA_DIST)/resizable.js: | $(EUPA_DIST) $(UGLIFYJS)
+#	$(call uglify_js,https://github.com/tannernetwork/resizable/raw/master/resizable.js)
 
-$(EUPA_DIST)/resizable.css: | $(EUPA_DIST) $(UGLIFYCSS)
-	$(call uglify_css,https://github.com/tannernetwork/resizable/raw/master/resizable.css)
+# $(EUPA_DIST)/resizable.css: | $(EUPA_DIST) $(UGLIFYCSS)
+#	$(call uglify_css,https://github.com/tannernetwork/resizable/raw/master/resizable.css)
 
 $(EUPA_DIST)/md5.js: | $(EUPA_DIST) $(UGLIFYJS)
 	$(call uglify_js,https://github.com/emn178/js-md5/raw/master/src/md5.js)
