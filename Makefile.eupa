@@ -32,6 +32,7 @@ UNAME_S := $(shell uname -s)
 
 COFFEE = $(EUPA_BUILD)/bin/coffee
 COFFEE_RUN = $(COFFEE)
+COFFEELINT = $(EUPA_BUILD)/bin/coffeelint
 LESSC = $(EUPA_BUILD)/bin/lessc
 LESSC_RUN = $(LESSC) --plugin=less-plugin-clean-css="advanced"
 TSC = $(EUPA_BUILD)/bin/tsc
@@ -53,6 +54,7 @@ eupa_clean:
 # ----------------------------------------------------------------------
 
 antigenic-map-viewer: $(EUPA_BUILD)/antigenic-map-viewer/amv-level2.js
+coffeelint: $(COFFEELINT)
 coffeescript coffee-script: $(COFFEE)
 jquery jquery.js: $(EUPA_DIST)/jquery.js $(EUPA_BUILD)/jquery.d.ts $(EUPA_DIST)/jquery.mousewheel.js
 jquery-ui jquery-ui.js: $(EUPA_DIST)/jquery-ui.js $(EUPA_BUILD)/jqueryui.d.ts
@@ -144,6 +146,9 @@ NPM_FIX_OUTPUT = grep -vE '[└├│\[]'
 
 $(COFFEE): | $(NPM)
 	$(RUN_NPM) install -g coffee-script 2>&1 | $(NPM_FIX_OUTPUT)
+
+$(COFFEELINT): | $(NPM)
+	$(RUN_NPM) install -g coffeelint 2>&1 | $(NPM_FIX_OUTPUT)
 
 $(LESSC): | $(NPM)
 	$(RUN_NPM) install -g less 2>&1 | $(NPM_FIX_OUTPUT)
