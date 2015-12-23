@@ -25,6 +25,7 @@ SUBMAKE = $(MAKE) EUPA_DIST=$(EUPA_DIST) EUPA_BUILD=$(EUPA_BUILD) EUPA_MAKEFILE=
 
 CURL = curl -sL
 AWK = awk
+GIT = git
 
 UNAME_S := $(shell uname -s)
 
@@ -57,6 +58,10 @@ eupa_clean:
 
 # ----------------------------------------------------------------------
 
+# C++ stuff
+axe: $(EUPA_BUILD)/include/axe/axe.h
+
+# JS stuff
 antigenic-map-viewer: $(EUPA_BUILD)/antigenic-map-viewer/amv-level2.js
 coffeelint: $(COFFEELINT)
 coffeescript coffee-script: $(COFFEE)
@@ -73,7 +78,16 @@ uglifyjs: $(UGLIFYJS)
 
 # ----------------------------------------------------------------------
 
-$(EUPA_DIST)/jquery.js: | $(EUPA_DIST)
+ifeq ($(shell hostname):$(USER),jagd:eu)
+  GIT_URL_PREFIX = git@github.com:
+else
+  GIT_URL_PREFIX = https://github.com/
+endif
+GIT_CLONE_PREFIX = $(GIT) clone $(GIT_URL_PREFIX)
+
+# ----------------------------------------------------------------------
+
+ $(EUPA_DIST)/jquery.js: | $(EUPA_DIST)
 	@HOST="http://code.jquery.com" &&\
 	BASENAME=$$(curl -s "$$HOST" | awk -F 'href=' '/jquery-2.+min/ { split($$NF, a, substr($$NF, 1, 1)); print a[2];}') &&\
 	echo downloading $$HOST$$BASENAME &&\
@@ -132,6 +146,13 @@ $(EUPA_BUILD)/antigenic-map-viewer/amv-level2.js: | $(EUPA_BUILD)
 #	$(warning AMV via rsync)
 #	rsync -a --exclude .git --exclude build --exclude dist --exclude eupa ~/ac/antigenic-map-viewer $(EUPA_BUILD)
 #	$(SUBMAKE) -C $(EUPA_BUILD)/antigenic-map-viewer install
+
+# ----------------------------------------------------------------------
+
+$(EUPA_BUILD)/include/axe/axe.h: | $(EUPA_BUILD)
+	if [ -d $(EUPA_BUILD)/axe ]; then cd $(EUPA_BUILD)/axe; git pull; else $(GIT_CLONE_PREFIX)skepner/axe $(EUPA_BUILD)/axe; fi
+	$(call make_target_dir,$(EUPA_BUILD)/include,EUPA_BUILD)
+	ln -s ../axe/include $(EUPA_BUILD)/include/axe
 
 # ----------------------------------------------------------------------
 
