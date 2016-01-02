@@ -32,6 +32,8 @@ UNAME_S := $(shell uname -s)
 # ----------------------------------------------------------------------
 
 EUPA_BIN = $(EUPA_BUILD)/bin
+EUPA_LIB = $(EUPA_BUILD)/lib
+EUPA_INCLUDE = $(EUPA_BUILD)/include
 
 COFFEE = $(EUPA_BIN)/coffee
 COFFEE_RUN = $(COFFEE)
@@ -59,7 +61,8 @@ eupa_clean:
 # ----------------------------------------------------------------------
 
 # C++ stuff
-axe: $(EUPA_BUILD)/include/axe/axe.h
+axe: $(EUPA_INCLUDE)/axe/axe.h
+command-line-arguments: $(EUPA_INCLUDE)/command-line-arguments.hh
 
 # JS stuff
 antigenic-map-viewer: $(EUPA_BUILD)/antigenic-map-viewer/amv-level2.js
@@ -67,7 +70,7 @@ coffeelint: $(COFFEELINT)
 coffeescript coffee-script: $(COFFEE)
 jquery jquery.js: $(EUPA_DIST)/jquery.js $(EUPA_BUILD)/jquery.d.ts $(EUPA_DIST)/jquery.mousewheel.js
 jquery-ui jquery-ui.js: $(EUPA_DIST)/jquery-ui.js $(EUPA_BUILD)/jqueryui.d.ts
-lessc less: $(LESSC) $(EUPA_BUILD)/lib/node_modules/less-plugin-clean-css
+lessc less: $(LESSC) $(EUPA_LIB)/node_modules/less-plugin-clean-css
 md5.js: $(EUPA_DIST)/md5.js
 require.js: $(EUPA_DIST)/require.js $(EUPA_BUILD)/require.d.ts $(EUPA_DIST)/css.js $(EUPA_DIST)/json.js $(EUPA_DIST)/text.js
 # resizable.js: $(EUPA_DIST)/resizable.js $(EUPA_DIST)/resizable.css
@@ -149,10 +152,14 @@ $(EUPA_BUILD)/antigenic-map-viewer/amv-level2.js: | $(EUPA_BUILD)
 
 # ----------------------------------------------------------------------
 
-$(EUPA_BUILD)/include/axe/axe.h: | $(EUPA_BUILD)
+$(EUPA_INCLUDE)/axe/axe.h: | $(EUPA_BUILD) $(EUPA_INCLUDE)
 	if [ -d $(EUPA_BUILD)/axe ]; then cd $(EUPA_BUILD)/axe; git pull; else $(GIT_CLONE_PREFIX)skepner/axe $(EUPA_BUILD)/axe; fi
 	$(call make_target_dir,$(EUPA_BUILD)/include,EUPA_BUILD)
-	ln -s ../axe/include $(EUPA_BUILD)/include/axe
+	ln -s ../axe/include $(EUPA_INCLUDE)/axe
+
+$(EUPA_INCLUDE)/command-line-arguments.hh: | $(EUPA_BUILD) $(EUPA_INCLUDE)
+	if [ -d $(EUPA_BUILD)/command-line-arguments ]; then cd $(EUPA_BUILD)/command-line-arguments; git pull; else $(GIT_CLONE_PREFIX)skepner/command-line-arguments $(EUPA_BUILD)/command-line-arguments; fi
+	ln -s ../command-line-arguments/command-line-arguments.hh $(EUPA_INCLUDE)
 
 # ----------------------------------------------------------------------
 
@@ -186,7 +193,7 @@ $(LESSC): | $(NPM)
 $(TSC): | $(NPM)
 	$(RUN_NPM) install -g typescript 2>&1 | $(NPM_FIX_OUTPUT)
 
-$(EUPA_BUILD)/lib/node_modules/less-plugin-clean-css: | $(NPM)
+$(EUPA_LIB)/node_modules/less-plugin-clean-css: | $(NPM)
 	$(RUN_NPM) install -g less-plugin-clean-css 2>&1 | $(NPM_FIX_OUTPUT)
 
 $(UGLIFYCSS): | $(NPM)
@@ -206,9 +213,9 @@ else
 endif
 NODE_EXTRACT_DIR = $(EUPA_BUILD)/node
 
-$(EUPA_BIN)/node $(NPM): | $(EUPA_BUILD) $(EUPA_BUILD)
+$(EUPA_BIN)/node $(NPM): | $(EUPA_BUILD) $(EUPA_BIN) $(EUPA_LIB)
 	rm -rf $(NODE_EXTRACT_DIR)
-	mkdir -p $(NODE_EXTRACT_DIR) $(EUPA_BIN) $(EUPA_BUILD)/lib
+	mkdir -p $(NODE_EXTRACT_DIR)
 	$(CURL) $$($(CURL) https://nodejs.org/en/download/stable/ | awk -F '(href="|")' '/$(NODE_ARCHIVE_INFIX)/ { print $$(NF-1); }') | tar -C $(NODE_EXTRACT_DIR) -xzf -
 	rsync -a $(NODE_EXTRACT_DIR)/node-*/bin $(EUPA_BUILD)
 	rsync -a $(NODE_EXTRACT_DIR)/node-*/lib $(EUPA_BUILD)
@@ -217,6 +224,15 @@ $(EUPA_BIN)/node $(NPM): | $(EUPA_BUILD) $(EUPA_BUILD)
 
 $(EUPA_BUILD):
 	$(call make_target_dir,$(EUPA_BUILD),EUPA_BUILD)
+
+$(EUPA_BIN): $(EUPA_BUILD)
+	$(call make_target_dir,$(EUPA_BIN),EUPA_BIN)
+
+$(EUPA_LIB): $(EUPA_BUILD)
+	$(call make_target_dir,$(EUPA_LIB),EUPA_LIB)
+
+$(EUPA_INCLUDE): $(EUPA_BUILD)
+	$(call make_target_dir,$(EUPA_INCLUDE),EUPA_INCLUDE)
 
 $(EUPA_DIST):
 	$(call make_target_dir,$(EUPA_DIST),EUPA_DIST)
