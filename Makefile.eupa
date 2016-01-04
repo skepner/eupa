@@ -154,7 +154,6 @@ $(EUPA_BUILD)/antigenic-map-viewer/amv-level2.js: | $(EUPA_BUILD)
 
 $(EUPA_INCLUDE)/axe/axe.h: | $(EUPA_BUILD) $(EUPA_INCLUDE)
 	if [ -d $(EUPA_BUILD)/axe ]; then cd $(EUPA_BUILD)/axe; git pull; else $(GIT_CLONE_PREFIX)skepner/axe $(EUPA_BUILD)/axe; fi
-	$(call make_target_dir,$(EUPA_BUILD)/include,EUPA_BUILD)
 	ln -s ../axe/include $(EUPA_INCLUDE)/axe
 
 $(EUPA_INCLUDE)/command-line-arguments.hh: | $(EUPA_BUILD) $(EUPA_INCLUDE)
@@ -257,7 +256,7 @@ define uglify_js
 endef
 
 define make_target_dir
-  @if [ -z "$(1)" ]; then echo $(2) is not set >&2; exit 1; else echo mkdir $(1); fi
+  @if [ -z "$(1)" ]; then echo $(2) is not set >&2; exit 1; fi
   @if [ ! -d $(1) ]; then mkdir -p $(1); fi
 endef
 
