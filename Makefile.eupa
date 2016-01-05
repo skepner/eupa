@@ -153,14 +153,6 @@ $(EUPA_BUILD)/antigenic-map-viewer/amv-level2.js: | $(EUPA_BUILD)
 
 # ----------------------------------------------------------------------
 
-ifeq ($(UNAME_S),Darwin)
-  PACKAGE_INSTALL_HELP = "brew install"
-else ifeq ($(UNAME_S),Linux)
-  PACKAGE_INSTALL_HELP = "sudo apt-get install"
-else
-  $(error Unsupported platform $(UNAME_S))
-endif
-
 $(EUPA_INCLUDE)/axe/axe.h: | $(EUPA_BUILD) $(EUPA_INCLUDE)
 	if [ -d $(EUPA_BUILD)/axe ]; then cd $(EUPA_BUILD)/axe; git pull; else $(GIT_CLONE_PREFIX)skepner/axe $(EUPA_BUILD)/axe; fi
 	ln -s ../axe/include $(EUPA_INCLUDE)/axe
@@ -170,7 +162,15 @@ $(EUPA_INCLUDE)/command-line-arguments.hh: | $(EUPA_BUILD) $(EUPA_INCLUDE)
 	ln -s ../command-line-arguments/command-line-arguments.hh $(EUPA_INCLUDE)
 
 cairo-pkg:
-	@if ! pkg-config cairo; then echo "ERROR: cairo not installed" >&2; echo "Use \"$(PACKAGE_INSTALL_HELP) (lib)cairo\" to install." >&2; exit 1; fi
+	@if ! pkg-config cairo; then \
+	  echo "ERROR: cairo not installed" >&2; \
+	  if [ "$(UNAME_S)" == "Darwin" ]; then \
+	    echo "Use \"brew install cairo\" to install." >&2; \
+	  elif [ "$(UNAME_S)" == "Linux" ]; then \
+	    echo "Use \"sudo apt-get install libcairo-dev\" to install." >&2; \
+	  fi; \
+	  exit 1; \
+	fi
 
 # $(EUPA_LIB)/libcairo.dylib: | $(EUPA_LIB)/libpixman-1.dylib $(EUPA_BUILD) $(EUPA_LIB)
 #	URL="http://www.cairographics.org/releases/cairo-$$(curl -s -L http://www.cairographics.org/releases/ | /usr/bin/awk -F / '/LATEST-cairo-/ { p = match($$0, /LATEST-cairo-[^\"]+/); print substr($$0, RSTART + 13, RLENGTH - 13); }').tar.xz" &&\
