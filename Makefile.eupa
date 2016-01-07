@@ -64,6 +64,7 @@ eupa_clean:
 axe: $(EUPA_INCLUDE)/axe/axe.h
 command-line-arguments: $(EUPA_INCLUDE)/command-line-arguments.hh
 cairo: cairo-pkg
+jsonhpp: $(EUPA_INCLUDE)/json.hpp
 
 # JS stuff
 antigenic-map-viewer: $(EUPA_BUILD)/antigenic-map-viewer/amv-level2.js
@@ -193,6 +194,9 @@ cairo-pkg:
 #	./autogen.sh --prefix $(EUPA_BUILD) --disable-static &&\
 #	/usr/bin/make -j8 &&\
 #	/usr/bin/make install
+
+$(EUPA_INCLUDE)/json.hpp: | $(EUPA_BUILD) $(EUPA_INCLUDE)
+	$(CURL) -o $@ https://github.com/open-source-parsers/json/raw/master/src/json.hpp
 
 # ----------------------------------------------------------------------
 
