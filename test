@@ -1,4 +1,3 @@
 #! /bin/sh
 trap "{exit 1;}" ERR
-make -f Makefile.eupa EUPA_DIST=dist EUPA_BUILD=build tsc
-rm -rf build dist
+make -f Makefile.eupa EUPA_DIST=dist EUPA_BUILD=build tsc eupa_clean
