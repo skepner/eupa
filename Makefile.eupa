@@ -104,8 +104,8 @@ $(EUPA_DIST)/jquery.mousewheel.js: | $(EUPA_DIST)
 	@grep Mousewheel $@
 
 $(EUPA_DIST)/jquery-ui.js: | $(EUPA_DIST) $(EUPA_BUILD)
-	@JQUERY_UI_VERSION=$$($(CURL) http://jqueryui.com/download/ | awk -F '(download/jquery-ui-|\.zip)' '{s=tolower($$0)} s~/href.+stable/ {print $$2}') &&\
-	  echo Downloading jquery-ui $$JQUERY_UI_VERSION &&\
+	@JQUERY_UI_VERSION=$$($(CURL) http://jqueryui.com/download/ | awk -F '(download/jquery-ui-|\.zip)' 'BEGIN {done=0;} {s=tolower($$0)} s~/href.+stable/ && s!~/beta/{if (!done) {print $$2; done=1;}}') &&\
+	  echo Downloading jquery-ui $$JQUERY_UI_VERSION from http://jqueryui.com/resources/download/jquery-ui-$$JQUERY_UI_VERSION.zip &&\
 	  $(CURL) -o $(EUPA_BUILD)/jquery-ui.zip http://jqueryui.com/resources/download/jquery-ui-$$JQUERY_UI_VERSION.zip &&\
 	  $(CURL) -o $(EUPA_BUILD)/jquery-ui-themes.zip http://jqueryui.com/resources/download/jquery-ui-themes-$$JQUERY_UI_VERSION.zip
 	@unzip -p $(EUPA_BUILD)/jquery-ui.zip \*jquery-ui.min.js >$@
