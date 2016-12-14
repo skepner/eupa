@@ -201,7 +201,7 @@ $(EUPA_INCLUDE)/json.hpp: | $(EUPA_BUILD) $(EUPA_INCLUDE)
 # ----------------------------------------------------------------------
 
 $(EUPA_BUILD)/%.d.ts: | $(EUPA_BUILD)
-	$(CURL) -sL -o $@ https://github.com/DefinitelyTyped/DefinitelyTyped/raw/master/$*/$*.d.ts
+	$(CURL) -sL -o $@ https://github.com/DefinitelyTyped/DefinitelyTyped/raw/master/$*/index.d.ts
 
 $(EUPA_BUILD)/jqueryui.d.ts: | $(EUPA_BUILD)
 	$(CURL) -o $@.tmp https://github.com/DefinitelyTyped/DefinitelyTyped/raw/master/jqueryui/jqueryui.d.ts
