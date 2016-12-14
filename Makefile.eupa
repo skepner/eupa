@@ -214,6 +214,7 @@ $(EUPA_BUILD)/require.d.ts: | $(EUPA_BUILD)
 $(EUPA_BUILD)/three.d.ts: | $(EUPA_BUILD)
 	$(CURL) -o $@ https://github.com/DefinitelyTyped/DefinitelyTyped/raw/master/three/index.d.ts
 	@#/usr/bin/awk 'BEGIN {RS="";} { gsub( "///<reference path", "/// reference path"); gsub(/export class Audio(Listener)?[^}]+}/, "/* & */"); print; }' $(BUILD)/typings/threejs/three.d.ts >$@
+	cd $(EUPA_BUILD) && for ref_file in $$(/usr/bin/awk 'BEGIN {FS="\"";} /reference path=/ { print $$2; }' three.d.ts); do echo $$ref_file; $(CURL) -O https://github.com/DefinitelyTyped/DefinitelyTyped/raw/master/three/$$ref_file; done
 
 # ----------------------------------------------------------------------
 
