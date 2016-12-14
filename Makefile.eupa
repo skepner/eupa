@@ -204,14 +204,14 @@ $(EUPA_BUILD)/%.d.ts: | $(EUPA_BUILD)
 	$(CURL) -sL -o $@ https://github.com/DefinitelyTyped/DefinitelyTyped/raw/master/$*/index.d.ts
 
 $(EUPA_BUILD)/jqueryui.d.ts: | $(EUPA_BUILD)
-	$(CURL) -o $@.tmp https://github.com/DefinitelyTyped/DefinitelyTyped/raw/master/jqueryui/jqueryui.d.ts
+	$(CURL) -o $@.tmp https://github.com/DefinitelyTyped/DefinitelyTyped/raw/master/jqueryui/index.d.ts
 	/usr/bin/awk -v RS="" '{ gsub( "\\.\\./jquery/jquery\\.d\\.ts", "jquery.d.ts"); print; }' $@.tmp >$@ && rm $@.tmp
 
 $(EUPA_BUILD)/require.d.ts: | $(EUPA_BUILD)
-	$(CURL) -o $@ https://github.com/DefinitelyTyped/DefinitelyTyped/raw/master/requirejs/require.d.ts
+	$(CURL) -o $@ https://github.com/DefinitelyTyped/DefinitelyTyped/raw/master/requirejs/index.d.ts
 
 $(EUPA_BUILD)/three.d.ts: | $(EUPA_BUILD)
-	$(CURL) -o $@ https://github.com/DefinitelyTyped/DefinitelyTyped/raw/master/threejs/three.d.ts
+	$(CURL) -o $@ https://github.com/DefinitelyTyped/DefinitelyTyped/raw/master/three/index.d.ts
 	@#/usr/bin/awk 'BEGIN {RS="";} { gsub( "///<reference path", "/// reference path"); gsub(/export class Audio(Listener)?[^}]+}/, "/* & */"); print; }' $(BUILD)/typings/threejs/three.d.ts >$@
 
 # ----------------------------------------------------------------------
