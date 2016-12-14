@@ -205,7 +205,8 @@ $(EUPA_BUILD)/%.d.ts: | $(EUPA_BUILD)
 
 $(EUPA_BUILD)/jqueryui.d.ts: | $(EUPA_BUILD)
 	$(CURL) -o $@.tmp https://github.com/DefinitelyTyped/DefinitelyTyped/raw/master/jqueryui/index.d.ts
-	/usr/bin/awk -v RS="" '{ gsub( "\\.\\./jquery/jquery\\.d\\.ts", "jquery.d.ts"); print; }' $@.tmp >$@ && rm $@.tmp
+	@#/Usr/bin/awk -v RS="" '{ gsub( "\\.\\./jquery/jquery\\.d\\.ts", "jquery.d.ts"); print; }' $@.tmp >$@ && rm $@.tmp
+	/Usr/bin/awk -v RS="" '{ gsub( "\"jquery\"", "\"jquery.d.ts\""); print; }' $@.tmp >$@ && rm $@.tmp
 
 $(EUPA_BUILD)/require.d.ts: | $(EUPA_BUILD)
 	$(CURL) -o $@ https://github.com/DefinitelyTyped/DefinitelyTyped/raw/master/requirejs/index.d.ts
