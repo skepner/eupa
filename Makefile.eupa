@@ -92,7 +92,7 @@ GIT_CLONE_PREFIX = $(GIT) clone $(GIT_URL_PREFIX)
 
 # ----------------------------------------------------------------------
 
- $(EUPA_DIST)/jquery.js: | $(EUPA_DIST)
+$(EUPA_DIST)/jquery.js: | $(EUPA_DIST)
 	@HOST="http://code.jquery.com" &&\
 	BASENAME=$$(curl -s "$$HOST" | awk -F 'href=' '/jquery-2.+min/ { split($$NF, a, substr($$NF, 1, 1)); print a[2];}') &&\
 	echo downloading $$HOST$$BASENAME &&\
@@ -125,11 +125,13 @@ $(EUPA_DIST)/json.js: | $(EUPA_DIST) $(UGLIFYJS)
 $(EUPA_DIST)/text.js: | $(EUPA_DIST) $(UGLIFYJS)
 	$(call uglify_js,https://github.com/millermedeiros/requirejs-plugins/raw/master/lib/text.js)
 
+dist/three.js: $(EUPA_DIST)/three.js
 $(EUPA_DIST)/three.js: | $(EUPA_DIST)
-	@LATEST=$$(curl -s -D - https://github.com/mrdoob/three.js/releases/latest | awk -F '[/\r]' '/^Location:/ {printf $$(NF-1);}') &&\
+	@LATEST=$$(curl -sL -D - https://github.com/mrdoob/three.js/releases/latest | awk -F '[/\r]' '/^Location:/ {printf $$(NF-1);}') &&\
 	URL=https://cdnjs.cloudflare.com/ajax/libs/three.js/$$LATEST/three.min.js &&\
 	echo $$URL &&\
 	$(CURL) -o $@ $$URL
+	if test $$(cat $@ | wc -c) -lt 10000; then echo getting three.js failed >&1; false; fi
 
 # $(EUPA_DIST)/resizable.js: | $(EUPA_DIST) $(UGLIFYJS)
 #	$(call uglify_js,https://github.com/tannernetwork/resizable/raw/master/resizable.js)
