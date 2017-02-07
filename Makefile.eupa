@@ -127,7 +127,7 @@ $(EUPA_DIST)/text.js: | $(EUPA_DIST) $(UGLIFYJS)
 
 dist/three.js: $(EUPA_DIST)/three.js
 $(EUPA_DIST)/three.js: | $(EUPA_DIST)
-	@LATEST=$$(curl -sL -D - https://github.com/mrdoob/three.js/releases/latest | awk -F '[/\r]' '/^Location:/ {printf $$(NF-1);}') &&\
+	@LATEST=$$(curl -sL -D - https://github.com/mrdoob/three.js/releases/latest | awk -F '[/\r]' '/^Location:/ {printf $$(NF-1);}' | tr -d r) &&\
 	URL=https://cdnjs.cloudflare.com/ajax/libs/three.js/$$LATEST/three.min.js &&\
 	echo $$URL &&\
 	$(CURL) -o $@ $$URL
