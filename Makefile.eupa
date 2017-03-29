@@ -41,7 +41,7 @@ COFFEELINT = $(EUPA_BIN)/coffeelint
 LESSC = $(EUPA_BIN)/lessc
 LESSC_RUN = $(LESSC) --plugin=less-plugin-clean-css="advanced"
 TSC = $(EUPA_BIN)/tsc
-TSC_RUN = $(TSC) -m amd --removeComments -t ES5 --noEmitOnError --noImplicitAny
+TSC_RUN = $(TSC) -m amd --removeComments -t ES5 --lib DOM,ES5,ScriptHost,ES2015.Iterable --noEmitOnError --noImplicitAny
 NPM = $(EUPA_BIN)/npm
 UGLIFYCSS = $(EUPA_BIN)/uglifycss
 UGLIFYJS = $(EUPA_BIN)/uglifyjs
