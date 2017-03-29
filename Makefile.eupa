@@ -100,7 +100,7 @@ $(EUPA_DIST)/jquery.js: | $(EUPA_DIST)
 	@head -n 1 $@
 
 $(EUPA_DIST)/jquery.mousewheel.js: | $(EUPA_DIST)
-	$(CURL) -o $@ https://github.com/jquery/jquery-mousewheel/raw/master/jquery.mousewheel.min.js
+	$(CURL) -o $@ https://github.com/jquery/jquery-mousewheel/blob/master/jquery.mousewheel.min.js"?raw=true"
 	@grep Mousewheel $@
 
 $(EUPA_DIST)/jquery-ui.js: | $(EUPA_DIST) $(EUPA_BUILD)
@@ -117,13 +117,13 @@ $(EUPA_DIST)/require.js: | $(EUPA_DIST)
 	$(CURL) -o $@ $$($(CURL) http://requirejs.org/docs/download.html | awk -F '(href="|")' '/href=.+\/minified/ { print $$(NF-1); }')
 
 $(EUPA_DIST)/css.js: | $(EUPA_DIST)
-	$(CURL) -o $@ https://raw.github.com/dimaxweb/CSSLoader/master/dist/css.js
+	$(CURL) -o $@ https://github.com/dimaxweb/CSSLoader/blob/master/dist/css.js"?raw=true"
 
 $(EUPA_DIST)/json.js: | $(EUPA_DIST) $(UGLIFYJS)
-	$(call uglify_js,https://github.com/millermedeiros/requirejs-plugins/raw/master/src/json.js)
+	$(call uglify_js,https://github.com/millermedeiros/requirejs-plugins/blob/master/src/json.js"?raw=true")
 
 $(EUPA_DIST)/text.js: | $(EUPA_DIST) $(UGLIFYJS)
-	$(call uglify_js,https://github.com/millermedeiros/requirejs-plugins/raw/master/lib/text.js)
+	$(call uglify_js,https://github.com/millermedeiros/requirejs-plugins/blob/master/lib/text.js"?raw=true")
 
 dist/three.js: $(EUPA_DIST)/three.js
 $(EUPA_DIST)/three.js: | $(EUPA_DIST)
@@ -134,13 +134,13 @@ $(EUPA_DIST)/three.js: | $(EUPA_DIST)
 	if test $$(cat $@ | wc -c) -lt 10000; then echo getting three.js failed >&1; false; fi
 
 # $(EUPA_DIST)/resizable.js: | $(EUPA_DIST) $(UGLIFYJS)
-#	$(call uglify_js,https://github.com/tannernetwork/resizable/raw/master/resizable.js)
+#	$(call uglify_js,https://github.com/tannernetwork/resizable/blob/master/resizable.js"?raw=true")
 
 # $(EUPA_DIST)/resizable.css: | $(EUPA_DIST) $(UGLIFYCSS)
-#	$(call uglify_css,https://github.com/tannernetwork/resizable/raw/master/resizable.css)
+#	$(call uglify_css,https://github.com/tannernetwork/resizable/blob/master/resizable.css"?raw=true")
 
 $(EUPA_DIST)/md5.js: | $(EUPA_DIST) $(UGLIFYJS)
-	$(call uglify_js,https://github.com/emn178/js-md5/raw/master/src/md5.js)
+	$(call uglify_js,https://github.com/emn178/js-md5/blob/master/src/md5.js"?raw=true")
 
 # ----------------------------------------------------------------------
 
@@ -198,26 +198,26 @@ cairo-pkg:
 #	/usr/bin/make install
 
 $(EUPA_INCLUDE)/json.hpp: | $(EUPA_BUILD) $(EUPA_INCLUDE)
-	$(CURL) -o $@ https://github.com/open-source-parsers/json/raw/master/src/json.hpp
+	$(CURL) -o $@ https://github.com/open-source-parsers/json/blob/master/src/json.hpp"?raw=true"
 
 # ----------------------------------------------------------------------
 
 $(EUPA_BUILD)/%.d.ts: | $(EUPA_BUILD)
-	$(CURL) -sL -o $@ https://github.com/DefinitelyTyped/DefinitelyTyped/raw/master/$*/index.d.ts
+	$(CURL) -sL -o $@ https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/$*/index.d.ts"?raw=true"
 
 $(EUPA_BUILD)/jqueryui.d.ts: | $(EUPA_BUILD)
-	$(CURL) -o $@.tmp https://github.com/DefinitelyTyped/DefinitelyTyped/raw/master/jqueryui/index.d.ts
+	$(CURL) -o $@.tmp https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/jqueryui/index.d.ts"?raw=true"
 	@#/usr/bin/awk -v RS="" '{ gsub( "\\.\\./jquery/jquery\\.d\\.ts", "jquery.d.ts"); print; }' $@.tmp >$@ && rm $@.tmp
 	/usr/bin/awk -v RS="" '{ gsub( "types=\"jquery\"", "path=\"jquery.d.ts\""); print; }' $@.tmp >$@ && rm $@.tmp
 
 $(EUPA_BUILD)/require.d.ts: | $(EUPA_BUILD)
-	$(CURL) -o $@ https://github.com/DefinitelyTyped/DefinitelyTyped/raw/master/requirejs/index.d.ts
+	$(CURL) -o $@ https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/requirejs/index.d.ts"?raw=true"
 
 $(EUPA_BUILD)/three.d.ts: | $(EUPA_BUILD)
-	$(CURL) -o $@.tmp https://github.com/DefinitelyTyped/DefinitelyTyped/raw/master/three/index.d.ts
+	$(CURL) -o $@.tmp "https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/three/index.d.ts?raw=true"
 	@#/usr/bin/awk 'BEGIN {RS="";} { gsub( "///<reference path", "/// reference path"); gsub(/export class Audio(Listener)?[^}]+}/, "/* & */"); print; }' $(BUILD)/typings/threejs/three.d.ts >$@
 	grep -v three-vr $@.tmp >$@
-	cd $(EUPA_BUILD) && for ref_file in $$(/usr/bin/awk 'BEGIN {FS="\"";} /reference path=/ { print $$2; }' three.d.ts); do echo $$ref_file; $(CURL) -O https://github.com/DefinitelyTyped/DefinitelyTyped/raw/master/three/$$ref_file; done
+	cd $(EUPA_BUILD) && for ref_file in $$(/usr/bin/awk 'BEGIN {FS="\"";} /reference path=/ { print $$2; }' three.d.ts); do echo $$ref_file; $(CURL) -o $$ref_file https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/three/$$ref_file"?raw=true"; done
 	cd $(EUPA_BUILD) && for ref_file in $$(grep -l "reference types" *.d.ts); do mv $$ref_file $$ref_file.orig; grep -v "reference types" $$ref_file.orig > $$ref_file; done
 
 # ----------------------------------------------------------------------
@@ -292,12 +292,12 @@ $(EUPA_DIST):
 
 define uglify_css
   $(CURL) -o $@.tmp $(1)
-  $(UGLIFYCSS) --ugly-comments $@.tmp >$@
+  /usr/bin/env PATH=$(EUPA_BIN)":$$PATH" $(UGLIFYCSS) --ugly-comments $@.tmp >$@
   rm $@.tmp
 endef
 
 define uglify_js
-  $(CURL) $(1) | $(UGLIFYJS) --screw-ie8 -c -o $@
+  $(CURL) $(1) | /usr/bin/env PATH=$(EUPA_BIN)":$$PATH" $(UGLIFYJS) --screw-ie8 -c -o $@
 endef
 
 define make_target_dir
